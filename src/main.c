@@ -1,4 +1,4 @@
-#include "game.c"
+#include "engine.c"
 
 int main(){
     CreateWindow(SIZE(800,480),TITLE("Floopy : GAME"));
@@ -19,6 +19,7 @@ int main(){
         if(game_over && IsKeyPressed(KEY_ENTER)){
             break;
         }
+        PutText(get_score(),TOP_LEFT,YELLOW);
         ClearBackground(BG_COLOR);
         EndDrawing();
     }

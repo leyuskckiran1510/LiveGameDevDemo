@@ -97,6 +97,7 @@ static Objects objects={.count=0};
 static Physics physics_config = {0,.wall_damping=0.5714278,.jump_strength=6.9,.move=1.5};
 static int game_over = 0;
 static int score = 0;
+static char score_str[5];
 
 int AddBall(Vector2 pos,int radius,Color color){
     int index = objects.count++;
@@ -363,23 +364,23 @@ void PutText(char * text,TEXT_POS pos, Color color){
         break;
     }
     case TOP_LEFT:{
-        x= GetScreenWidth()/2;
-        y= GetScreenHeight()/2;
+        x= 10;
+        y= 10;
         break;
     }
     case TOP_RIGHT:{
-        x= GetScreenWidth()/2;
-        y= GetScreenHeight()/2;
+        x= GetScreenWidth()-10;
+        y= 10;
         break;
     }
     case BOTTOM_LEFT:{
-        x= GetScreenWidth()/2;
-        y= GetScreenHeight()/2;
+        x= 10;
+        y= GetScreenHeight()-24;
         break;
     }
     case BOTTOM_RIGHT:{
-        x= GetScreenWidth()/2;
-        y= GetScreenHeight()/2;
+        x= GetScreenWidth()-10;
+        y= GetScreenHeight()-24;
         break;
     }
       break;
@@ -418,4 +419,9 @@ void GenerateBoxes(int count, float minGap, float maxGap) {
                 RIGHT_TO_LEFT_WRAP, GREEN);
             xOffset += boxWidth + 200;
       }
+}
+
+char * get_score(){
+    sprintf(score_str,"%d",score);
+    return  score_str;
 }
