@@ -1,27 +1,23 @@
-#include "engine.c"
+#include "engine.c" 
 
 int main(){
-    CreateWindow(SIZE(800,480),TITLE("Floopy : GAME"));
-    SetGameFPS(60);
-    int object_id = AddBall((Vector2){.x=200,.y=240},10,RED);  
-    AddControlls(object_id,CNTLR_JUMPER);
-    AddCollision(object_id);
-    AddGravity(object_id);
+    CreateWindow(SIZE(800,480),TITLE("FLOPPY BIRD"));
+    int ball_id = AddBall(CORD(100,100),20,GREEN);
+    AddGravity(ball_id);
+    AddControlls(ball_id,CNTLR_JUMPER);
     AddWalls();
+    AddCollision(ball_id);
     GenerateBoxes(3,100,200);
 
     while(WindowNotClosed()){
         StartDrawing();
-        if(CheckCollisions()){
-            PutText("Game Over",CENTER,RED);
+        ClearBackground(WHITE);
+        EndDrawing();
+        if (CheckCollisions()){
             game_over=1;
-        }
-        if(game_over && IsKeyPressed(KEY_ENTER)){
-            break;
+            PutText("GAME OVER",CENTER,RED);
         }
         PutText(get_score(),TOP_LEFT,YELLOW);
-        ClearBackground(BG_COLOR);
-        EndDrawing();
     }
-    CloseWindow();
+    return 0;
 }

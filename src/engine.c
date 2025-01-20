@@ -5,7 +5,10 @@
 #include <stdio.h>
 #include <time.h>
 
-#define CreateWindow(...) InitWindow(__VA_ARGS__)
+#define RADIUS(r) r
+#define CreateWindow(...) InitWindow(__VA_ARGS__);SetTargetFPS(60);
+#define EXIT_LOOP break;
+#define CORD(cx,cy)  (Vector2){.x=(cx),.y=(cy)}
 #define SIZE(x,y)  (x),(y)
 #define TITLE(x) x
 #define SetGameFPS(x) SetTargetFPS((x));
@@ -97,7 +100,7 @@ static Objects objects={.count=0};
 static Physics physics_config = {0,.wall_damping=0.5714278,.jump_strength=6.9,.move=1.5};
 static int game_over = 0;
 static int score = 0;
-static char score_str[5];
+static char score_str[20];
 
 int AddBall(Vector2 pos,int radius,Color color){
     int index = objects.count++;
@@ -287,7 +290,7 @@ void ApplyPhysics(){
             objects.items[i].velocity.y += GRAVITY; 
         }
         if(physics_config.walls){
-            int radius = ObjRadius(i);
+            int radius = get_object_width(objects.items[i]);
             if(ObjX(i)<=radius || ObjX(i)>=GetScreenWidth()-radius){
                     objects.items[i].velocity.x *=-1;
                     objects.items[i].velocity.x *=(physics_config.wall_damping);
@@ -361,31 +364,35 @@ void PutText(char * text,TEXT_POS pos, Color color){
     case CENTER:{
         x= GetScreenWidth()/2;
         y= GetScreenHeight()/2;
+        x-=MeasureText(text,24)/2;
         break;
     }
     case TOP_LEFT:{
-        x= 10;
+        x=0;
         y= 10;
+        x+=MeasureText(text,24)/2;
         break;
     }
     case TOP_RIGHT:{
         x= GetScreenWidth()-10;
-        y= 10;
+        y=0;
+        x-=MeasureText(text,24)/2;
         break;
     }
     case BOTTOM_LEFT:{
-        x= 10;
+        x=0;
         y= GetScreenHeight()-24;
+        x+=MeasureText(text,24)/2;
         break;
     }
     case BOTTOM_RIGHT:{
         x= GetScreenWidth()-10;
         y= GetScreenHeight()-24;
+        x-=MeasureText(text,24)/2;
         break;
     }
       break;
     }
-    x-=MeasureText(text,24)/2;
     DrawText(text,x,y,24,color);
 }
 
@@ -422,6 +429,6 @@ void GenerateBoxes(int count, float minGap, float maxGap) {
 }
 
 char * get_score(){
-    sprintf(score_str,"%d",score);
+    sprintf(score_str,"Score : %d",score);
     return  score_str;
 }
