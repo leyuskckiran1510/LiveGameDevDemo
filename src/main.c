@@ -1,23 +1,28 @@
-#include "engine.c" 
+#include"engine.c"
 
 int main(){
-    CreateWindow(SIZE(800,480),TITLE("FLOPPY BIRD"));
-    int ball_id = AddBall(CORD(100,100),20,GREEN);
-    AddGravity(ball_id);
-    AddControlls(ball_id,CNTLR_JUMPER);
+    CreateWindow(SIZE(800,400),"FlappyBird");
+    int ball = AddBall(CORD(100,100),10,BLACK);
+    AddGravity(ball);
     AddWalls();
-    AddCollision(ball_id);
-    GenerateBoxes(3,100,200);
-
+    AddSounds();
+    GenerateBoxes(3, 100,160);
+    AddCollision(ball);
+    AddControlls(ball,CNTLR_JUMPER);
     while(WindowNotClosed()){
         StartDrawing();
-        ClearBackground(WHITE);
-        EndDrawing();
-        if (CheckCollisions()){
+        ClearBackground(RED);
+        if(CheckCollisions()){
             game_over=1;
-            PutText("GAME OVER",CENTER,RED);
+            PutText("GAME OVER",CENTER , PINK);
         }
-        PutText(get_score(),TOP_LEFT,YELLOW);
+        PutText(get_score(),TOP_LEFT, WHITE);
+        EndDrawing();
+
+
     }
-    return 0;
+
+
+
+    return 1;
 }

@@ -6,7 +6,6 @@
 #include <time.h>
 
 #define RADIUS(r) r
-#define CreateWindow(...) InitWindow(__VA_ARGS__);SetTargetFPS(60);
 #define EXIT_LOOP break;
 #define CORD(cx,cy)  (Vector2){.x=(cx),.y=(cy)}
 #define SIZE(x,y)  (x),(y)
@@ -96,12 +95,33 @@ typedef struct Physics{
 
 } Physics;
 
+typedef enum {
+    POINT=1,
+    WING,
+    DIE,
+    SWOOSH,
+    MUSIC_COUNT,
+} MUSICS;
+
 static Objects objects={.count=0};
 static Physics physics_config = {0,.wall_damping=0.5714278,.jump_strength=6.9,.move=1.5};
 static int game_over = 0;
 static int score = 0;
 static char score_str[20];
+static int is_audio  = 0;
+#define AddSounds()   is_audio=1;
+Sound sounds[MUSIC_COUNT] = {};
+static int game_over_audio_played = 0;
 
+void CreateWindow(int width,int height,char * title){
+    InitWindow(width,height,title);
+    InitAudioDevice();
+    sounds[POINT] = LoadSound("assets/point.wav");
+    sounds[WING]  = LoadSound("assets/wing.wav");
+    sounds[DIE]   = LoadSound("assets/hit.wav");
+    sounds[SWOOSH]   = LoadSound("assets/swoosh.wav");
+    SetTargetFPS(60);
+}
 int AddBall(Vector2 pos,int radius,Color color){
     int index = objects.count++;
     objects.items[index].type = BALL;
@@ -134,12 +154,18 @@ void RenderObjects(){
         }
     }
 }
-#define GRAVITY 0.4
+#define GRAVITY  0.4
 #define ObjX(index)  objects.items[(index)].shape.pos.x
 #define ObjY(index)  objects.items[(index)].shape.pos.y
 #define ObjCol(index)  objects.items[(index)].color
 #define ObjRadius(index)  objects.items[(index)].shape.radius
 
+
+void play_sound(MUSICS sound){
+    if(is_audio){
+        PlaySound(sounds[sound]);
+    }
+}
 
 void handel_controllers(Object *object){
     switch (object->controller) {
@@ -147,33 +173,40 @@ void handel_controllers(Object *object){
             case CNTLR_JUMPER:{
                 if (IsKeyPressed(KEY_SPACE)) {
                     object->velocity.y = -physics_config.jump_strength;
+                    play_sound(WING);
                 }
                 break;
             }
             case CNTLR_2AXIS:{
                 if (IsKeyDown(KEY_W) || IsKeyDown(KEY_UP)) {
                     object->velocity.y -= physics_config.move;
+                    play_sound(SWOOSH);
                 }
                 
                 if (IsKeyDown(KEY_S) || IsKeyDown(KEY_DOWN)) {
                     object->velocity.y += physics_config.move;
+                    play_sound(SWOOSH);
                 }
                 
                 if (IsKeyDown(KEY_A) || IsKeyDown(KEY_LEFT)) {
                     object->velocity.x -= physics_config.move;
+                    play_sound(SWOOSH);
                 }
                 
                 if (IsKeyDown(KEY_D) || IsKeyDown(KEY_RIGHT)) {
                     object->velocity.x += physics_config.move;
+                    play_sound(SWOOSH);
                 }
 
                 if (!IsKeyDown(KEY_A) && !IsKeyDown(KEY_D) && 
                     !IsKeyDown(KEY_LEFT) && !IsKeyDown(KEY_RIGHT)) {
                     object->velocity.x *= 0.9f;
+                    play_sound(SWOOSH);
                 }
                 if (!IsKeyDown(KEY_W) && !IsKeyDown(KEY_S) && 
                     !IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN)) {
                     object->velocity.y *= 0.9f;
+                    play_sound(SWOOSH);
                 }
                 break;
             }
@@ -213,7 +246,7 @@ void handel_marquee(Object *object) {
 
     int width = get_object_width(*object);
     int height = get_object_height(*object);
-    int marquee_speed = object->marquee_speed;
+    int marquee_speed = object->marquee_speed + (int)(score/10);
     switch (object->marquee) {
         case MRQ_NONE:
             return;
@@ -234,7 +267,7 @@ void handel_marquee(Object *object) {
         case RIGHT_TO_LEFT:
             object->shape.pos.x -= marquee_speed;
             if (object->shape.pos.x < 0) {
-                object->shape.pos.x = 0; // Stop at the left edge
+                object->shape.pos.x = 0;
             }
             break;
 
@@ -242,7 +275,9 @@ void handel_marquee(Object *object) {
             object->shape.pos.x -= marquee_speed;
             if (object->shape.pos.x < -width) {
                 object->shape.pos.x = GetScreenWidth(); // Wrap to the right
-                score++;
+                score ++;
+                play_sound(POINT);
+                object->color = GREEN;
             }
             break;
 
@@ -281,7 +316,13 @@ void handel_marquee(Object *object) {
 
 
 void ApplyPhysics(){
-    if(game_over) return;
+    if(game_over){
+        if (!game_over_audio_played){
+            game_over_audio_played=1;
+            play_sound(DIE);
+        }
+        return;
+    } 
     for(int i=0;i<objects.count;i++){
         ObjX(i) += objects.items[i].velocity.x;     
         ObjY(i) += objects.items[i].velocity.y;  
@@ -393,6 +434,8 @@ void PutText(char * text,TEXT_POS pos, Color color){
     }
       break;
     }
+    // void *fnt = LoadFont("");
+    // DrawTextPro(fnt,text, , Vector2 origin, float rotation, float fontSize, float spacing, Color tint)
     DrawText(text,x,y,24,color);
 }
 
