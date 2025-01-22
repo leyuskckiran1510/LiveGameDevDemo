@@ -24,6 +24,11 @@ typedef enum ObjectType {
   LINE = 2,
 } ObjectType;
 
+typedef enum ScoreType{
+  CURRENT_SCORE = 0,
+  HIGHEST_SCORE
+}ScoreType;
+
 typedef enum Controller {
   CNTLR_NONE = 0,
   CNTLR_JUMPER = 1,

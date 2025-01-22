@@ -19,8 +19,8 @@ int main() {
         PutText("GAME OVER", CENTER, PINK);
       }
     }
-    PutText(get_score(false), TOP_LEFT, WHITE);
-    PutText(get_score(true), TOP_RIGHT, WHITE);
+    PutText(get_score(CURRENT_SCORE), TOP_LEFT, WHITE);
+    PutText(get_score(HIGHEST_SCORE), TOP_RIGHT, WHITE);
     EndDrawing();
   }
   return 1;
