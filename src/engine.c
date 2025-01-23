@@ -24,10 +24,7 @@ typedef enum ObjectType {
   LINE = 2,
 } ObjectType;
 
-typedef enum ScoreType{
-  CURRENT_SCORE = 0,
-  HIGHEST_SCORE
-}ScoreType;
+typedef enum ScoreType { CURRENT_SCORE = 0, HIGHEST_SCORE } ScoreType;
 
 typedef enum Controller {
   CNTLR_NONE = 0,
@@ -115,6 +112,7 @@ static int is_audio = 0;
 #define AddSounds() is_audio = 1;
 Sound sounds[MUSIC_COUNT] = {};
 static int game_over_audio_played = 0;
+static int game_started = 0;
 
 void CreateWindow(int width, int height, char *title) {
   InitWindow(width, height, title);
@@ -317,7 +315,7 @@ void handel_marquee(Object *object) {
 }
 
 void ApplyPhysics() {
-  if (game_over) {
+  if (game_over || !game_started) {
     if (!game_over_audio_played) {
       game_over_audio_played = 1;
       play_sound(DIE);
@@ -325,8 +323,9 @@ void ApplyPhysics() {
     return;
   }
   for (int i = 0; i < objects.count; i++) {
-    ObjX(i) += objects.items[i].velocity.x;
-    ObjY(i) += objects.items[i].velocity.y;
+    // change posiiton with velocity
+    objects.items[(i)].shape.pos.x += objects.items[i].velocity.x;
+    objects.items[(i)].shape.pos.y += objects.items[i].velocity.y;
 
     if (objects.items[i].follows_gravity) {
       objects.items[i].velocity.y += GRAVITY;
@@ -350,7 +349,23 @@ void ApplyPhysics() {
 #define StartDrawing()                                                         \
   BeginDrawing();                                                              \
   ApplyPhysics();                                                              \
-  RenderObjects();
+  RenderObjects();                                                             \
+  if (IsKeyDown(KEY_SPACE))                                                    \
+    game_started = 1;
+
+#define EndDrawing()                                                           \
+  if (game_over > 60 && IsKeyDown(KEY_SPACE)) {                                \
+    game_started = 1;                                                          \
+    game_over = 0;                                                             \
+    score = 0;                                                                 \
+    reset_boxes();                                                             \
+  }                                                                            \
+  EndDrawing();
+
+#define GAME_OVER()                                                            \
+  game_over += 1;                                                              \
+  game_started = 0;
+
 #define AddGravity(object_id) objects.items[object_id].follows_gravity = 1;
 #define AddCollision(object_id) objects.items[object_id].is_opaque = 1;
 #define AddWalls() physics_config.walls = 1;
@@ -446,9 +461,9 @@ void PutText(char *text, TEXT_POS pos, Color color) {
 void GenerateBoxes(int count, float minGap, float maxGap) {
   srand(time(NULL));
   float boxWidth = 100;
-  float minHeight = 50;
+  float minHeight = 100;
   float maxHeight = GetScreenHeight() - minGap - minHeight;
-  float xOffset = GetScreenWidth();
+  float xOffset = GetScreenWidth() / 2.0;
   float gap = 0;
   for (int i = 0; i < count; i++) {
     gap = minGap + rand() % (int)(maxGap - minGap + 1);
@@ -473,6 +488,15 @@ void GenerateBoxes(int count, float minGap, float maxGap) {
   }
 }
 
+void reset_boxes() {
+
+  for (int i = 0; i < objects.count; i++) {
+    if (objects.items[i].type != BOX)
+      continue;
+    objects.items[i].rec.pos.x += GetScreenWidth() / 2.0;
+    objects.items[i].color = GREEN;
+  }
+}
 int get_highest_score() {
   FILE *read_file = fopen("highest_score.txt", "r");
   int highest_score = 0;
@@ -483,9 +507,9 @@ int get_highest_score() {
     }
     fclose(read_file);
   }
-  if (score > highest_score) {
+  if (score / 2 > highest_score) {
     FILE *write_file = fopen("highest_score.txt", "w");
-    highest_score = score;
+    highest_score = score / 2;
     if (write_file != NULL) {
       fprintf(write_file, "%s", get_score(false));
       fclose(write_file);
@@ -498,7 +522,7 @@ char *get_score(bool highest) {
   if (highest) {
     sprintf(score_str, "Highest Score : %d", get_highest_score());
   } else {
-    sprintf(score_str, "Current Score : %d", score);
+    sprintf(score_str, "Current Score : %d", score / 2);
   }
   return score_str;
 }

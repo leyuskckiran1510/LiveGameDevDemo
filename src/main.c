@@ -2,26 +2,24 @@
 #include <raylib.h>
 
 int main() {
-  CreateWindow(SIZE(1000, 600), "FlappyBird");
-  int ball = AddBall(CORD(100, 100), 10, BLACK);
-  AddGravity(ball);
+  CreateWindow(SIZE(800, 400), "Flappy Bird");
+  int ball_id = AddBall(CORD(100, 140), 10, RED);
+  AddGravity(ball_id);
   AddWalls();
-  AddSounds();
-  GenerateBoxes(3, 100, 160);
-  AddCollision(ball);
-  AddControlls(ball, CNTLR_JUMPER);
+  AddCollision(ball_id);
+  GenerateBoxes(3, 120, 180);
+  AddControlls(ball_id, CNTLR_JUMPER);
   while (WindowNotClosed()) {
     StartDrawing();
-    ClearBackground(RED);
+    ClearBackground(WHITE);
     if (CheckCollisions()) {
-      game_over = 1;
-      if (game_over) {
-        PutText("GAME OVER", CENTER, PINK);
-      }
+      GAME_OVER();
+      PutText("GAME OVER", CENTER, RED);
     }
-    PutText(get_score(CURRENT_SCORE), TOP_LEFT, WHITE);
-    PutText(get_score(HIGHEST_SCORE), TOP_RIGHT, WHITE);
+
+    PutText(get_score(CURRENT_SCORE), TOP_RIGHT, BLACK);
+    PutText(get_score(HIGHEST_SCORE), TOP_LEFT, BLACK);
     EndDrawing();
   }
-  return 1;
+  return 0;
 }
